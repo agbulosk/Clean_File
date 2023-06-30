@@ -10,13 +10,15 @@ This project is meant to clean customer files of bad characters including commas
 <!-- GETTING STARTED -->
 ## Getting Started
 
-1. Download the clean_file.py and requirements.txt files to a project folder.
-2. When you run clean_file.py, a GUI will come up where you can select the individual file you want to clean, an output folder, and a new filename.
+1. Download the clean_file.py, GUI.py, main.py, and requirements.txt files to a project folder.
+2. When you run main.py, a GUI will come up where you can select the individual file you want to clean, an output folder, and a new filename. 
 3. Once the program is complete, you will get a pop-up message confirming the cleaning process is done and the file will open on your desktop for your review.
 4. Stats of total bad characters and individual character counts will display to show how many characters were removed from the file.
 
 Files:
-* clean.py - Main python file that contains the source code.
+* main.py - Main python file that contains the source code.
+* clean_file.py - Module containing function definitions for cleaning file.
+* GUI.py - Module for creating GUI with user input fields.
 * requirements.txt - Contains a list of libraries and their versions which you will need installed to run this program. You might be prompted to upgrade these modules so follow the instructions in your terminal window accordingly.
 
 ### Installation

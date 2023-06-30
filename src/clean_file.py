@@ -1,16 +1,7 @@
-"""This script cleans Excel, Text, and CSV files by removing a list of bad characters.
+"""This module contains functions to clean files.
 
-When you first run this program it creates a GUI that accepts an input file, output 
-folder, and filename. The main function will be called once you click on the
-"Clean File" button. All other functions will be called from main.
-
-The cleaned file will be exported to the output folder path designated by the user with
-the file extension matching the input file's extension.
-
-Lastly, a pop up message will show the total count of bad characters removed along with
-the individual total character counts. The cleaned file will automatically open on your
-desktop for review.
-"""
+Module is imported into the main.py file where functions will be called
+from the main function."""
 
 import collections
 import os
@@ -20,53 +11,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import PySimpleGUI as sg
-
-
-def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> None:
-    """Main function for cleaning individual Excel or txt or csv files.
-
-    Calls all other functions.
-
-    Only accepts Excel files (.xls, .xlsx) or Text files (.txt)
-    that are comma or tab delimited or CSV files (.csv)
-
-    Args:
-        input_file (os.PathLike): Input file path received from user in the GUI.
-        output_folder (os.PathLike): Destination folder path received from user
-        in the GUI.
-        filename (str): New filename for cleaned file.
-
-    Raises:
-        pd.errors.ParserError: File extension must be (.xls, .xlsx, .txt, .csv).
-        Text files must be comma or tab delimited.
-    """
-
-    # list of common bad characters that cause issues for Extract, Transform, Load (ETL)
-    bad_characters = [",", '"', '""', "'"]
-    # Extract file extension
-    file_extension = get_file_extension(input_file)
-    # read input_file into a Pandas DataFrame
-    df = check_file_type(input_file, file_extension)
-    # if DataFrame is None then raise exception to user
-    # telling them the desired file type
-    if df is None:
-        raise pd.errors.ParserError(
-            "File type must be either Excel, Text as comma or tab delimited, or CSV."
-        )
-    else:
-        # count bad characters and remove bad characters
-        counter = count_bad_characters(df, bad_characters)
-        df = remove_bad_characters(df, bad_characters)
-        df = remove_null_values(df)
-        df = strip_leading_and_trailing_chars(df)
-
-        # create output path for exporting cleaned file
-        output_path = construct_output_path(output_folder, filename)
-        # export DataFrame to a file extension matching the intput file's extension
-        output_dataframe(df, output_path, file_extension)
-
-        # show stats of bad characters removed in pop-up message
-        display_stats(counter)
 
 
 def get_file_extension(input_file: os.PathLike) -> str:
@@ -206,9 +150,7 @@ def construct_output_path(output_folder: os.PathLike, filename: str) -> os.PathL
     return Path(output_folder, filename)
 
 
-def output_dataframe(
-    df: pd.DataFrame, output_path: os.PathLike, file_extension: str
-) -> None:
+def output_dataframe(df: pd.DataFrame, output_path: Path, file_extension: str) -> None:
     """Output the dataframe to the file extension matching the input file's extension.
 
     Args:
@@ -246,61 +188,3 @@ def display_stats(counter: dict[str, int]) -> None:
     for char, count in counter.items():
         message += f"Character '{char}': {count}\n"
     sg.popup_no_titlebar(message)
-
-
-def is_valid_path(filepath: os.PathLike) -> bool:
-    """Validate path from user exists
-
-    Args:
-        filepath (os.PathLike): Valid filepath.
-
-    Returns:
-        bool: True or False.
-    """
-
-    if filepath and Path(filepath).exists():
-        return True
-    sg.popup_error("Filepath not correct")
-    return False
-
-
-def gui() -> None:
-    """Function to create GUI and call main function."""
-
-    sg.theme("DarkBlue3")  # Add a touch of color
-    # All the stuff inside your window.
-    layout = [
-        [
-            sg.Text("Input File: "),
-            sg.Input(key="-IN-"),
-            sg.FileBrowse(),
-        ],
-        [sg.Text("Output Folder: "), sg.Input(key="-OUT-"), sg.FolderBrowse()],
-        [sg.Text("New Filename: "), sg.Input(key="-FILENAME-")],
-        [sg.Exit(), sg.Button("Clean File")],
-    ]
-
-    # Create the Window
-    window = sg.Window("Clean File", layout)
-
-    # Event Loop to process "events" and get the "values" of the inputs
-    while True:
-        event, values = window.read()
-        if (
-            event == sg.WIN_CLOSED or event == "Cancel"
-        ):  # if user closes window or clicks cancel
-            break
-        if event in (sg.WIN_CLOSED, "Exit"):
-            break
-        if event == "Clean File":  # button for running main function
-            if (is_valid_path(values["-IN-"])) and (is_valid_path(values["-OUT-"])):
-                main(
-                    input_file=values["-IN-"],
-                    output_folder=values["-OUT-"],
-                    filename=values["-FILENAME-"],
-                )
-    window.close()
-
-
-if __name__ == "__main__":
-    gui()
