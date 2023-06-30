@@ -25,10 +25,8 @@ def get_file_extension(input_file: os.PathLike) -> str:
     return os.path.splitext(input_file)[1].lower()
 
 
-def check_file_type(
-    input_file: os.PathLike, file_extension: str
-) -> pd.DataFrame | None:
-    """Function for determining what type of file and delimiter is used.
+def load_dataframe(input_file: os.PathLike, file_extension: str) -> pd.DataFrame | None:
+    """Loads the input file into a Pandas DataFrame.
 
     Args:
         input_file (os.PathLike): Input file path received from user in the GUI.

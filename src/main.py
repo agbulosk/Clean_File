@@ -48,7 +48,7 @@ def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> 
     # Extract file extension
     file_extension = cf.get_file_extension(input_file)
     # read input_file into a Pandas DataFrame
-    df = cf.check_file_type(input_file, file_extension)
+    df = cf.load_dataframe(input_file, file_extension)
     # if DataFrame is None then raise exception to user
     # telling them the desired file type
     if df is None:
