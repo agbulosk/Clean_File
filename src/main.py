@@ -18,10 +18,9 @@ desktop for review.
 
 import os
 
+import clean_file as cf
 import GUI
 import pandas as pd
-
-import clean_file as cf
 
 
 def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> None:
@@ -45,6 +44,7 @@ def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> 
 
     # list of common bad characters that cause issues for Extract, Transform, Load (ETL)
     bad_characters = [",", '"', '""', "'"]
+    bad_special_characters = ["\n", "\r", "\t", "\x0b", "\x0c"]
     # Extract file extension
     file_extension = cf.get_file_extension(input_file)
     # read input_file into a Pandas DataFrame
@@ -61,7 +61,7 @@ def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> 
         df = cf.remove_bad_characters(df, bad_characters)
         df = cf.remove_null_values(df)
         df = cf.strip_leading_and_trailing_chars(df)
-
+        df = cf.remove_special_characters_from_df(df, bad_special_characters)
         # create output path for exporting cleaned file
         output_path = cf.construct_output_path(output_folder, filename)
         # export DataFrame to a file extension matching the intput file's extension
@@ -72,6 +72,5 @@ def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> 
 
 
 if __name__ == "__main__":
-    # calling the GUI function will call the main function
-    # once the user clicks the "Clean File" button
+    # calling the GUI function will call the main function once the user clicks the "Clean File" button
     GUI.gui()

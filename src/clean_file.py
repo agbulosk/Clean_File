@@ -6,6 +6,7 @@ from the main function."""
 import collections
 import os
 import re
+import string
 from pathlib import Path
 
 import numpy as np
@@ -129,6 +130,52 @@ def strip_leading_and_trailing_chars(df: pd.DataFrame) -> pd.DataFrame:
 
     for column in df.columns:
         df[column] = df[column].astype(str).str.strip()
+    return df
+
+
+def remove_special_characters(
+    text: pd.DataFrame.columns,
+    bad_special_characters,
+) -> str:
+    """
+    Function for removing non-printable characters and other bad special characters. For use in the
+    remove_special_characters_from_df function.
+
+    Args:
+        text: The values from each column will be passed into this argument.
+        bad_special_characters: ["\n", "\r", "\t", "\x0b", "\x0c"]
+
+    Returns: Cleaned text.
+    """
+
+    printable_chars = set(string.printable)
+    cleaned_chars = [
+        char
+        for char in text
+        if char in printable_chars and char not in bad_special_characters
+    ]
+    cleaned_text = "".join(cleaned_chars)
+    return cleaned_text
+
+
+def remove_special_characters_from_df(
+    df: pd.DataFrame,
+    bad_special_characters: list[str] = ["\n", "\r", "\t", "\x0b", "\x0c"],
+) -> pd.DataFrame:
+    """
+    Removes all bad special characters by using the remove_special_characters function.
+
+    Args:
+        df: pd.DataFrame
+        bad_special_characters: ["\n", "\r", "\t", "\x0b", "\x0c"]
+
+    Returns: Pandas Dataframe.
+    """
+
+    for column in df.columns:
+        df[column] = df[column].apply(
+            remove_special_characters, bad_special_characters=bad_special_characters
+        )
     return df
 
 

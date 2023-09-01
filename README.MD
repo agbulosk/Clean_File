@@ -1,7 +1,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This project is meant to clean customer files of bad characters including commas, single double quotes, double double quotes, apostrophes, and leading and trailing characters. Files must have the following extensions: Excel file (.xls, .xlsx), Text files (.txt), and CSV files (.csv). If it's a text file it must be comma or tab delimited.
+This project is meant to clean customer files of bad characters including commas, single double quotes, double double quotes, apostrophes, and leading and trailing characters. Special characters will also be removed such as carriage returns, new lines, control characters, and any non-printable characters. Files must have the following extensions: Excel file (.xls, .xlsx), Text files (.txt), and CSV files (.csv). If it's a text file it must be comma or tab delimited.
 
 ### Built With
 
