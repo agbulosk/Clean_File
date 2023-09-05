@@ -11,64 +11,36 @@ folder, and filename. The main function will be called once you click on the
 The cleaned file will be exported to the output folder path designated by the user with
 the file extension matching the input file's extension.
 
-Lastly, a pop up message will show the total count of bad characters removed along with
+Lastly, a pop-up message will show the total count of bad characters removed along with
 the individual total character counts. The cleaned file will automatically open on your
 desktop for review.
 """
 
 import os
 
-import clean_file as cf
 import GUI
-import pandas as pd
+import clean_file as cf
 
 
 def main(input_file: os.PathLike, output_folder: os.PathLike, filename: str) -> None:
-    """Main function for cleaning individual Excel or txt or csv files.
-
-    Calls all other functions.
-
-    Only accepts Excel files (.xls, .xlsx) or Text files (.txt)
-    that are comma or tab delimited or CSV files (.csv)
+    """Main function for calling methods from the CleanFile class in clean_file module.
+    Also calls the gui method from the GUI module.
 
     Args:
         input_file (os.PathLike): Input file path received from user in the GUI.
         output_folder (os.PathLike): Destination folder path received from user
         in the GUI.
         filename (str): New filename for cleaned file.
-
-    Raises:
-        pd.errors.ParserError: File extension must be (.xls, .xlsx, .txt, .csv).
-        Text files must be comma or tab delimited.
     """
 
-    # list of common bad characters that cause issues for Extract, Transform, Load (ETL)
-    bad_characters = [",", '"', '""', "'"]
-    bad_special_characters = ["\n", "\r", "\t", "\x0b", "\x0c"]
-    # Extract file extension
-    file_extension = cf.get_file_extension(input_file)
-    # read input_file into a Pandas DataFrame
-    df = cf.load_dataframe(input_file, file_extension)
-    # if DataFrame is None then raise exception to user
-    # telling them the desired file type
-    if df is None:
-        raise pd.errors.ParserError(
-            "File type must be either Excel, Text as comma or tab delimited, or CSV."
-        )
-    else:
-        # count bad characters and remove bad characters
-        counter = cf.count_bad_characters(df, bad_characters)
-        df = cf.remove_bad_characters(df, bad_characters)
-        df = cf.remove_null_values(df)
-        df = cf.strip_leading_and_trailing_chars(df)
-        df = cf.remove_special_characters_from_df(df, bad_special_characters)
-        # create output path for exporting cleaned file
-        output_path = cf.construct_output_path(output_folder, filename)
-        # export DataFrame to a file extension matching the intput file's extension
-        cf.output_dataframe(df, output_path, file_extension)
+    # Create a CleanFile instance and perform the cleaning
+    file = cf.CleanFile(input_file)
+    clean_df, counter = file.clean_df()
 
-        # show stats of bad characters removed in pop-up message
-        cf.display_stats(counter)
+    # export cleaned DataFrame and display stats in pop-up window
+    output_path = file.construct_output_path(output_folder, filename)
+    file.output_dataframe(clean_df, output_path)
+    file.display_stats(counter)
 
 
 if __name__ == "__main__":
