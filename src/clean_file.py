@@ -48,6 +48,7 @@ class CleanFile:
             )
 
         # count bad characters and remove bad characters
+        df = self.convert_df_to_str(df)
         counter = self.count_bad_characters(
             df, self.bad_characters, self.bad_special_characters
         )
@@ -101,6 +102,16 @@ class CleanFile:
             # If none of the checks succeed, return None
             return None
 
+    def convert_df_to_str(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Args:
+            df: 2D labeled data structure with columns.
+
+        Returns:
+            pd.DataFrame: 2D labeled data structure with columns.
+        """
+        return df.astype(str)
+
     def count_bad_characters(
         self,
         df: pd.DataFrame,
@@ -124,10 +135,10 @@ class CleanFile:
         for column in df.columns:
             for char in all_bad_characters:
                 if char in bad_special_characters:
-                    count = df[column].astype(str).str.count(re.escape(char)).sum()
-                    counter[rf"{char!r}"] += count
+                    count = df[column].str.count(re.escape(char)).sum()
+                    counter[rf"{char}"] += count
                 else:
-                    count = df[column].astype(str).str.count(re.escape(char)).sum()
+                    count = df[column].str.count(re.escape(char)).sum()
                     counter[re.escape(char)] += count
         return counter
 
@@ -145,10 +156,8 @@ class CleanFile:
             pd.DataFrame: 2D labeled data structure with columns.
         """
 
-        for column in df.columns:
-            for char in bad_characters:
-                df[column] = df[column].astype(str).str.replace(re.escape(char), "")
-        return df
+        escaped_characters = [re.escape(char) for char in bad_characters]
+        return df.replace(escaped_characters, "", regex=True)
 
     def remove_null_values(self, df: pd.DataFrame) -> pd.DataFrame:
         """Removes NaN and NaT values from the Dataframe.
@@ -176,9 +185,7 @@ class CleanFile:
             pd.DataFrame: 2D labeled data structure with columns.
         """
 
-        for column in df.columns:
-            df[column] = df[column].astype(str).str.strip()
-        return df
+        return df.applymap(lambda x: x.strip())
 
     def remove_special_characters(
         self,
