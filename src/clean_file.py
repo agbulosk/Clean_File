@@ -10,14 +10,16 @@ import string
 from pathlib import Path
 from typing import Tuple
 
-import PySimpleGUI as sg
 import numpy as np
 import pandas as pd
+import PySimpleGUI as sg
 
 
 class CleanFile:
     def __init__(self, input_file: os.PathLike) -> None:
         self.input_file = input_file
+        self.bad_characters = [",", '"', '""', "'"]
+        self.bad_special_characters = ["\n", "\r", "\t", "\x0b", "\x0c"]
 
     def clean_df(self) -> Tuple[pd.DataFrame, dict[str, int]]:
         """
@@ -35,10 +37,6 @@ class CleanFile:
             Tuple of Dataframe, Dictionary of count of bad characters.
         """
 
-        # list of common bad characters that cause issues for Extract, Transform, Load (ETL)
-        bad_characters = [",", '"', '""', "'"]
-        bad_special_characters = ["\n", "\r", "\t", "\x0b", "\x0c"]
-
         # get file extension and load input file into Pandas DataFrame
         file_extension = self.get_file_extension(self.input_file)
         df = self.load_dataframe(self.input_file, file_extension)
@@ -50,11 +48,13 @@ class CleanFile:
             )
 
         # count bad characters and remove bad characters
-        counter = self.count_bad_characters(df, bad_characters)
-        df = self.remove_bad_characters(df, bad_characters)
+        counter = self.count_bad_characters(
+            df, self.bad_characters, self.bad_special_characters
+        )
+        df = self.remove_bad_characters(df, self.bad_characters)
         df = self.remove_null_values(df)
         df = self.strip_leading_and_trailing_chars(df)
-        df = self.remove_special_characters_from_df(df, bad_special_characters)
+        df = self.remove_special_characters_from_df(df, self.bad_special_characters)
         return df, counter
 
     def get_file_extension(self, input_file: os.PathLike) -> str:
@@ -102,7 +102,10 @@ class CleanFile:
             return None
 
     def count_bad_characters(
-        self, df: pd.DataFrame, bad_characters: list[str] = [",", '"', '""', "'"]
+        self,
+        df: pd.DataFrame,
+        bad_characters: list[str] = [",", '"', '""', "'"],
+        bad_special_characters: list[str] = ["\n", "\r", "\t", "\x0b", "\x0c"],
     ) -> dict[str, int]:
         """Count the total amount of bad characters and their occurrences in the DataFrame.
 
@@ -117,10 +120,15 @@ class CleanFile:
         """
 
         counter = collections.Counter()
+        all_bad_characters = bad_characters + bad_special_characters
         for column in df.columns:
-            for char in bad_characters:
-                count = df[column].astype(str).str.count(re.escape(char)).sum()
-                counter[char] += count
+            for char in all_bad_characters:
+                if char in bad_special_characters:
+                    count = df[column].astype(str).str.count(re.escape(char)).sum()
+                    counter[rf"{char!r}"] += count
+                else:
+                    count = df[column].astype(str).str.count(re.escape(char)).sum()
+                    counter[re.escape(char)] += count
         return counter
 
     def remove_bad_characters(
@@ -189,12 +197,10 @@ class CleanFile:
         """
 
         printable_chars = set(string.printable)
-        cleaned_chars = [
-            char
-            for char in text
-            if char in printable_chars and char not in bad_special_characters
-        ]
-        cleaned_text = "".join(cleaned_chars)
+        pattern = "[" + re.escape("".join(bad_special_characters)) + "]"
+        cleaned_text = re.sub(
+            pattern, "", "".join(char for char in text if char in printable_chars)
+        )
         return cleaned_text
 
     def remove_special_characters_from_df(
@@ -212,11 +218,9 @@ class CleanFile:
         Returns: Pandas Dataframe.
         """
 
-        for column in df.columns:
-            df[column] = df[column].apply(
-                self.remove_special_characters,
-                bad_special_characters=bad_special_characters,
-            )
+        df = df.applymap(
+            lambda x: self.remove_special_characters(x, self.bad_special_characters)
+        )
         return df
 
     def construct_output_path(self, output_folder: os.PathLike, filename: str) -> Path:
@@ -269,5 +273,5 @@ class CleanFile:
         message = f"Total count of bad characters: {sum(counter.values())}\n\n"
         message += "Individual character counts:\n"
         for char, count in counter.items():
-            message += f"Character '{char}': {count}\n"
+            message += rf"Character '{char!r}': {count}" + "\n"
         sg.popup_no_titlebar(message)
