@@ -219,7 +219,7 @@ class CleanFile:
         """
 
         df = df.applymap(
-            lambda x: self.remove_special_characters(x, self.bad_special_characters)
+            lambda x: self.remove_special_characters(x, bad_special_characters)
         )
         return df
 
